@@ -76,7 +76,7 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
     debugPrint("$TAG - End Date: " + _endDateRequest!);
 
     // Lay danh sach ban ghi du lieu gps tu API
-    if (widget.imei != null && widget.imei.isNotEmpty) {
+    if (widget.imei.isNotEmpty) {
       handleListPayload(
           true, widget.imei, _startDateRequest!, _endDateRequest!);
     }
@@ -171,14 +171,14 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
                                 child: Column(
                                   children: [
                                     Text(
-                                      widget.ship != null ? widget.ship : "",
+                                      widget.ship,
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      widget.owner != null ? widget.owner : "",
+                                      widget.owner,
                                       style: TextStyle(
                                           color: Colors.black,
                                           fontSize: 16,
@@ -404,9 +404,7 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
                                                     ),
                                                   ),
                                                   onPressed: () {
-                                                    if (widget.imei != null &&
-                                                        widget
-                                                            .imei.isNotEmpty) {
+                                                    if (widget.imei.isNotEmpty) {
                                                       handleListPayload(
                                                           true,
                                                           widget.imei,

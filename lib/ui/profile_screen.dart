@@ -4,7 +4,6 @@ import 'package:vhks/api/response/ShipResponse.dart';
 import 'package:vhks/database/ShipInfoDB.dart';
 import 'package:vhks/ui/fee_screen.dart';
 
-import '../api/request/api_service.dart';
 import '../api/response/LoginResponse.dart';
 import '../api/response/token_response.dart';
 import '../models/gps_log_info.dart';
