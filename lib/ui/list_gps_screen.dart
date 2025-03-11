@@ -90,6 +90,7 @@ class _ListGpsScreenState extends State<ListGpsScreen> {
                                       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
                                       child: GpsLogItem(
                                           key: ValueKey(gpsLog.sessionTime),
+                                          listGpsLogs: widget.listGpsLog,
                                           index: index,
                                           gpsLogInfo: gpsLog,
                                           onTap: () {

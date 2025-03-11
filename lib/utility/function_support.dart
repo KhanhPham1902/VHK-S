@@ -22,6 +22,7 @@ import 'package:vhks/ui/select_ship_item.dart';
 import '../api/response/ShipResponse.dart';
 import '../models/fee_info.dart';
 import '../models/gps_log_info.dart';
+import '../screens/login_screen.dart';
 import '../ui/colors.dart';
 import 'constants.dart';
 
@@ -533,101 +534,6 @@ class FunctionSupport{
         );
     }
 
-    // Dialog gps log
-    void showGpsLogDialog(BuildContext outerContext, List<GpsLogInfo> gpsLogs, Function(GpsLogInfo) onTap) {
-        showModalBottomSheet(
-            context: outerContext,
-            isScrollControlled: true,
-            shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
-            ),
-            builder: (BuildContext builderContext) {
-                return ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(15.0)),
-                  child: FractionallySizedBox(
-                      heightFactor: 0.8,
-                    child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-                        decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
-                        ),
-                        child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                                // Thanh kéo modal
-                                Container(
-                                    width: 40,
-                                    height: 5,
-                                    margin: const EdgeInsets.only(bottom: 10),
-                                    decoration: BoxDecoration(
-                                        color: Colors.grey[400],
-                                        borderRadius: BorderRadius.circular(10),
-                                    ),
-                                ),
-                                const Text(
-                                    "Nhật ký bản tin vị trí",
-                                    style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600),
-                                ),
-                                const Divider(color: Colors.black38, thickness: 0.5),
-                                Text(
-                                    "Số lượng bản tin: ${gpsLogs.length}",
-                                    style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 10),
-                    
-                                // Danh sách bản tin GPS
-                                Expanded(
-                                    child: ListView.builder(
-                                        physics: const BouncingScrollPhysics(),
-                                        shrinkWrap: true,
-                                        cacheExtent: 200,
-                                        itemCount: gpsLogs.length,
-                                        itemBuilder: (context, index) {
-                                            final gpsLog = gpsLogs[index];
-                                            return Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
-                                                child: GpsLogItem(
-                                                    key: ValueKey(gpsLog.sessionTime),
-                                                    index: index,
-                                                    gpsLogInfo: gpsLog,
-                                                    onTap: () {
-                                                        onTap(gpsLog);
-                                                        Navigator.pop(builderContext);
-                                                    },
-                                                ),
-                                            );
-                                        },
-                                    ),
-                                ),
-                                const SizedBox(height: 10),
-                    
-                                // Nút đóng modal
-                                TextButton(
-                                    onPressed: () => Navigator.pop(builderContext),
-                                    style: ButtonStyle(
-                                        backgroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                            RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(15.0),
-                                            ),
-                                        ),
-                                    ),
-                                    child: const Text(
-                                        "Đóng",
-                                        style: TextStyle(fontSize: 18, color: Colors.white),
-                                    ),
-                                ),
-                            ],
-                        ),
-                    ),
-                  ),
-                );
-            },
-        );
-    }
-
     // Dialog thanh toan cuoc
     void showPaymentDialog(BuildContext context) {
         showModalBottomSheet(
@@ -644,6 +550,125 @@ class FunctionSupport{
                 );
             }
         );
+    }
+
+    // Dang xuat tai khoan
+    void showLogoutDialog(BuildContext context) {
+        showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
+            ),
+            builder: (BuildContext builderContext) {
+                return Wrap(
+                    children: [
+                        Container(
+                            width: double.maxFinite,
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+                            decoration: const BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
+                                boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 10,
+                                        spreadRadius: 2
+                                    )
+                                ]
+                            ),
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                    Container(
+                                        width: 40,
+                                        height: 5,
+                                        decoration: BoxDecoration(
+                                            color: Colors.grey[400],
+                                            borderRadius: BorderRadius.circular(10),
+                                        ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Center(
+                                        child: Text(
+                                            "Bạn có muốn đăng xuất tài khoản này?",
+                                            style: TextStyle(fontSize: 18.0, color: Colors.redAccent, fontWeight: FontWeight.w600,),
+                                            textAlign: TextAlign.center,
+                                        ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                            // Nút "Có"
+                                            Expanded(
+                                                child: ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(
+                                                        backgroundColor: Colors.redAccent,
+                                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(15),
+                                                        ),
+                                                    ),
+                                                    child: const Text(
+                                                        "Có",
+                                                        textAlign: TextAlign.center,
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 20,
+                                                        ),
+                                                    ),
+                                                    onPressed: () {
+                                                        Navigator.pop(context);
+                                                        _clearAllPreferences(context);
+                                                    },
+                                                ),
+                                            ),
+                                            const SizedBox(width: 20),
+                                            // Nút "Không"
+                                            Expanded(
+                                                child: ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(
+                                                        backgroundColor: AppColors.blur_black,
+                                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                                        shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(15),
+                                                        ),
+                                                    ),
+                                                    child: const Text(
+                                                        "Không",
+                                                        textAlign: TextAlign.center,
+                                                        style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 20,
+                                                        ),
+                                                    ),
+                                                    onPressed: () {
+                                                        Navigator.pop(context);
+                                                    },
+                                                ),
+                                            ),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                        ),
+                    ],
+                );
+            }
+        );
+    }
+
+    // Dang xuat tai khoan
+    Future<void> _clearAllPreferences(BuildContext context) async {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        debugPrint("$TAG - Đã xóa toàn bộ dữ liệu SharedPreferences");
+        navigateAndFinish(context, LoginScreen());
     }
 
     // Thong bao snackbar
@@ -833,13 +858,23 @@ class FunctionSupport{
         return result.trim();
     }
 
-    // Tinh khoang thoi gian giua hai thoi diem theo phut
+    // Tinh khoang thoi gian giua thoi diem hien tai va thoi diem nhat dinh theo phut
     int calculateTimeBetween(String inputDateTime) {
         DateTime parsedDateTime = DateTime.parse(inputDateTime);
         DateTime now = DateTime.now();
         Duration difference = now.difference(parsedDateTime);
 
         return difference.inMinutes;
+    }
+
+    // Tinh khoang thoi gian giua 2 thoi diem
+    double calculateTimeDifference(String time1, String time2) {
+        final dateFormat = DateFormat("dd/MM HH:mm");
+
+        DateTime dateTime1 = dateFormat.parse(time1);
+        DateTime dateTime2 = dateFormat.parse(time2);
+
+        return (dateTime2.difference(dateTime1).inMinutes / 60.0).abs();
     }
 
     // Thiet lap mau chu cho khoang thoi gian tu ban tin gan nhat

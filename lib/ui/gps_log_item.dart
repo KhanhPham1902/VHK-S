@@ -8,12 +8,14 @@ import 'colors.dart';
 final FunctionSupport _support = FunctionSupport();
 
 class GpsLogItem extends StatelessWidget{
+    final List<GpsLogInfo> listGpsLogs;
     final int index;
     final GpsLogInfo gpsLogInfo;
     final VoidCallback onTap;
 
     const GpsLogItem({
         Key? key,
+        required this.listGpsLogs,
         required this.index,
         required this.gpsLogInfo,
         required this.onTap,
@@ -21,6 +23,29 @@ class GpsLogItem extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
+      // Lấy thời gian của item hiện tại
+      String currentTime = (gpsLogInfo.byteCount == 10 || gpsLogInfo.byteCount == 15)
+          ? _support.format10And15GpsDateTime(gpsLogInfo.gpsResponse.time)
+          : (gpsLogInfo.byteCount == 23)
+          ? _support.format23BytesDateTime(gpsLogInfo.sessionTime)
+          : "";
+
+      // Lấy thời gian của item trước đó (nếu index > 0)
+      String previousTime = "";
+      if (index > 0) {
+          GpsLogInfo previousGpsLog = listGpsLogs[index - 1];
+          previousTime = (previousGpsLog.byteCount == 10 || previousGpsLog.byteCount == 15)
+              ? _support.format10And15GpsDateTime(previousGpsLog.gpsResponse.time)
+              : (previousGpsLog.byteCount == 23)
+              ? _support.format23BytesDateTime(previousGpsLog.sessionTime)
+              : "";
+      }
+
+      double timeDifference = 0.0;
+      if (previousTime.isNotEmpty) {
+          timeDifference = _support.calculateTimeDifference(previousTime, currentTime);
+      }
+
       return RepaintBoundary(
         child: InkWell(
             onTap: (){
@@ -30,7 +55,7 @@ class GpsLogItem extends StatelessWidget{
                 width: double.maxFinite,
                 padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                    color: AppColors.blur_black,
+                    color: timeDifference > 6 ? AppColors.blur_red : AppColors.blur_black,
                     borderRadius: BorderRadius.circular(15),
                 ),
                 child: Row(

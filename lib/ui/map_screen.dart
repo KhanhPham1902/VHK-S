@@ -140,8 +140,8 @@ class _MapScreenState extends State<MapScreen>{
 
                       CustomInfoWindow(
                           controller: _customInfoWindowController,
-                          height: 230,
-                          width: 280,
+                          height: 500,
+                          width: 500,
                           offset: 35,
                       ),
 
@@ -374,6 +374,8 @@ class _MapScreenState extends State<MapScreen>{
                                                   String? shipStatus = setShipStatus(gpsResponse, elapsedTime);
                                                   Color? shipColor = setShipColor(gpsResponse, elapsedTime);
 
+                                                  // Delay 500ms trước khi cập nhật UI
+                                                  await Future.delayed(Duration(milliseconds: 500));
                                                   _updateCamera(coordinates, 15);
                                                   _showInfoWindow(shipResponse, gpsResponse, shipStatus!, shipColor!);
 
@@ -497,7 +499,9 @@ class _MapScreenState extends State<MapScreen>{
             markerId: MarkerId(markerId),
             position: coordinates,
             icon: BitmapDescriptor.fromBytes(resizedImage),
-            onTap: () {
+            onTap: () async {
+                // Delay 500ms trước khi cập nhật UI
+                await Future.delayed(Duration(milliseconds: 500));
                 _updateCamera(coordinates, 15);
                 _showInfoWindow(shipResponse, response, shipStatus!, shipColor!);
 
@@ -556,12 +560,7 @@ class _MapScreenState extends State<MapScreen>{
     }
 
     // Hiển thị infoWindow
-    Future<void> _showInfoWindow(
-        ShipResponse shipResponse,
-        dynamic response,
-        String shipStatus,
-        Color shipColor
-        ) async {
+    Future<void> _showInfoWindow(ShipResponse shipResponse, dynamic response, String shipStatus, Color shipColor) async {
         double latitude = response.latitude;
         double longitude = response.longitude;
         LatLng coordinates = LatLng(latitude, longitude);
@@ -573,63 +572,67 @@ class _MapScreenState extends State<MapScreen>{
                 clipBehavior: Clip.none,
                 alignment: Alignment.bottomCenter,
                 children: [
-                      Container(
-                          padding: EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(15),
-                              boxShadow: [
-                                  BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 5,
-                                      spreadRadius: 1,
-                                      offset: Offset(0, 3),
-                                  ),
-                              ],
+                      IntrinsicWidth( // Chiều rộng tự động theo nội dung
+                        child: IntrinsicHeight( // Chiều cao tự động theo nội dung
+                          child: Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(15),
+                                  boxShadow: [
+                                      BoxShadow(
+                                          color: Colors.black26,
+                                          blurRadius: 5,
+                                          spreadRadius: 1,
+                                          offset: Offset(0, 3),
+                                      ),
+                                  ],
+                              ),
+                              child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                      Text(shipStatus, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: shipColor)),
+                                      SizedBox(height: 5),
+                                      _buildInfoRow("Số hiệu tàu:", shipResponse.shipNumber, Colors.black),
+                                      _buildInfoRow("Chủ tàu:", shipResponse.owner, Colors.black),
+                                      _buildInfoRow("Thuyền trưởng:", shipResponse.captain, Colors.black),
+                                      _buildInfoRow("Vĩ độ:", _support.convertToDMS(latitude, true), Colors.black),
+                                      _buildInfoRow("Kinh độ:", _support.convertToDMS(longitude, false), Colors.black),
+                                      _buildInfoRow("Tốc độ:", "${response.speed} hải lý/h", Colors.black),
+                                      _buildInfoRow("Bản tin gần nhất:", _support.formatDateTime(response.time), Colors.black),
+                                      _buildInfoRow("Cách ranh giới:", "${distance} hải lý", (!isInside || distance<15) ? Colors.red : Colors.black),
+                                  ],
+                              ),
                           ),
-                          child: Column(
-                              children: [
-                                  Text(shipStatus, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: shipColor)),
-                                  SizedBox(height: 5),
-                                  _buildInfoRow("Số hiệu tàu:", shipResponse.shipNumber, Colors.black),
-                                  SizedBox(height: 2),
-                                  _buildInfoRow("Chủ tàu:", shipResponse.owner, Colors.black),
-                                  SizedBox(height: 2),
-                                  _buildInfoRow("Thuyền trưởng:", shipResponse.captain, Colors.black),
-                                  SizedBox(height: 2),
-                                  _buildInfoRow("Vĩ độ:", _support.convertToDMS(latitude, true), Colors.black),
-                                  SizedBox(height: 2),
-                                  _buildInfoRow("Kinh độ:", _support.convertToDMS(longitude, false), Colors.black),
-                                  SizedBox(height: 2),
-                                  _buildInfoRow("Tốc độ:", "${response.speed} hải lý/h", Colors.black),
-                                  SizedBox(height: 2),
-                                  _buildInfoRow("Bản tin gần nhất:", _support.formatDateTime(response.time), Colors.black),
-                                  SizedBox(height: 2),
-                                  _buildInfoRow("Cách ranh giới:", "${distance} hải lý", (!isInside || distance<15) ? Colors.red : Colors.black),
-                              ],
-                          ),
+                        ),
                       ),
-                      // Tam giác dưới cùng, vẽ ngay dưới container
+                      // Tam giác dưới cùng
                       Positioned(
-                          bottom: -10, // Dịch xuống dưới để chạm đáy
+                          bottom: -10,
                           child: CustomPaint(
-                              size: Size(20, 10), // Kích thước tam giác
+                              size: Size(20, 10),
                               painter: TrianglePainter(),
                           ),
                       ),
                     ]
                 ),
-              LatLng(latitude - 0.0001, longitude),
+              LatLng(latitude, longitude),
         );
     }
 
     Widget _buildInfoRow(String title, String value, Color color) {
-        return Row(
-            children: [
-                Text(title, style: TextStyle(fontSize: 15)),
-                Spacer(),
-                Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
-            ],
+        return Column(
+          children: [
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                    Text(title, style: TextStyle(fontSize: 15)),
+                    SizedBox(width: 10,),
+                    Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
+                ],
+            ),
+              SizedBox(height: 2),
+          ],
         );
     }
 

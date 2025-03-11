@@ -225,7 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 )
                             ),
 
-                            const SizedBox(height: 20,),
+                            const SizedBox(height: 10,),
 
                             // Thong tin cuoc
                             InkWell(
@@ -273,7 +273,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                             ),
 
-                            const SizedBox(height: 20,),
+                            const SizedBox(height: 10,),
 
                             // Thanh toan tien cuoc
                             InkWell(
@@ -316,7 +316,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                             ),
 
-                            const SizedBox(height: 20,),
+                            const SizedBox(height: 10,),
 
                             // Lien he
                             InkWell(
@@ -350,6 +350,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             ),
                                             Image.asset(
                                                 'assets/support.png',
+                                                fit: BoxFit.cover,
+                                                width: 50,
+                                                height: 50,
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            ),
+
+                            const SizedBox(height: 10,),
+
+                            // Dang xuat tai khoan
+                            InkWell(
+                                onTap: (){
+                                    _support.showLogoutDialog(context);
+                                },
+                                child: Container(
+                                    width: double.infinity,
+                                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                                    padding: EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                        color: AppColors.blur_black,
+                                        borderRadius: BorderRadius.circular(15),
+                                        boxShadow: [
+                                            BoxShadow(
+                                                color: Colors.black38.withOpacity(0.1),
+                                                offset: const Offset(-5,5),
+                                                blurRadius: 12
+                                            )
+                                        ]
+                                    ),
+                                    child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                            Text(
+                                                'Đăng xuất tài khoản',
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w600,
+                                                ),
+                                            ),
+                                            Image.asset(
+                                                'assets/logout.png',
                                                 fit: BoxFit.cover,
                                                 width: 50,
                                                 height: 50,
