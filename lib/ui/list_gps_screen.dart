@@ -112,9 +112,8 @@ class _ListGpsScreenState extends State<ListGpsScreen> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(Colors.grey),
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  backgroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                  shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15.0),
                     ),

@@ -177,8 +177,8 @@ class FunctionSupport {
                     color: Colors.white),
               ),
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                backgroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
                   ),
@@ -740,7 +740,7 @@ class FunctionSupport {
     );
 
     // Chèn OverlayEntry vào Overlay
-    overlay?.insert(overlayEntry);
+    overlay.insert(overlayEntry);
 
     // Loại bỏ OverlayEntry sau khi 1 giây hiển thị
     Future.delayed(const Duration(seconds: 2), () {

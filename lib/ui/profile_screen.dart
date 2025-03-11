@@ -26,9 +26,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   List<GpsLogInfo> listGpsLog = []; // Danh sach ban ghi gps
-  late ApiService _apiService;
-  String? _endDateRequest;
-  String? _startDateRequest;
 
   final String TAG = "ProfileScreen";
 
@@ -46,7 +43,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     shipInfoDB = ShipInfoDB();
 
-    _apiService = ApiService();
 
     // Lay thong tin chu tau va so dien thoai
     _loadShipInfo();
@@ -262,7 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                  color: Colors.black38.withOpacity(0.1),
+                                  color: Colors.black38,
                                   offset: const Offset(-5, 5),
                                   blurRadius: 12)
                             ]),
@@ -305,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
-                                  color: Colors.black38.withOpacity(0.1),
+                                  color: Colors.black38,
                                   offset: const Offset(-5, 5),
                                   blurRadius: 12)
                             ]),
@@ -348,7 +344,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
-                                  color: Colors.black38.withOpacity(0.1),
+                                  color: Colors.black38,
                                   offset: const Offset(-5, 5),
                                   blurRadius: 12)
                             ]),
@@ -391,7 +387,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
-                                  color: Colors.black38.withOpacity(0.1),
+                                  color: Colors.black38,
                                   offset: const Offset(-5, 5),
                                   blurRadius: 12)
                             ]),
