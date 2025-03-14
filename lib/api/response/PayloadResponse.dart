@@ -1,29 +1,34 @@
-class PayloadResponse{
-    final String id;
+class PayloadResponse {
     final String imei;
-    final int monSn;
-    final String sessionTime;
-    final int length;
+    final String transmitTime;
+    final int byteCount;
     final String payload;
 
     PayloadResponse({
-        required this.id,
         required this.imei,
-        required this.monSn,
-        required this.sessionTime,
-        required this.length,
-        required this.payload
+        required this.transmitTime,
+        required this.byteCount,
+        required this.payload,
     });
 
-    factory PayloadResponse.fromJson(Map<String, dynamic> json) {
+    factory PayloadResponse.fromMap(Map<String, dynamic> json) {
         return PayloadResponse(
-            id: json['id'] ?? '',
             imei: json['imei'] ?? '',
-            monSn: json['monSn'] != null ? int.tryParse(json['monSn'].toString()) ?? 0 : 0,
-            sessionTime: json['sessionTime'] ?? '',
-            length: json['length'] != null ? int.tryParse(json['length'].toString()) ?? 0 : 0,
-            payload: json['payload'] ?? ''
+            transmitTime: json['transmit_time'] ?? '',
+            byteCount: int.tryParse(json['byteCount']?.toString() ?? '0') ?? 0,
+            payload: json['data'] ?? '',
         );
     }
 
+    static List<PayloadResponse> fromJson(Map<String, dynamic> json) {
+        if (json.containsKey('data') && json['data'] is Map<String, dynamic>) {
+            final data = json['data'];
+            if (data.containsKey('messages') && data['messages'] is List) {
+                return (data['messages'] as List)
+                    .map((msg) => PayloadResponse.fromMap(msg as Map<String, dynamic>))
+                    .toList();
+            }
+        }
+        return [];
+    }
 }

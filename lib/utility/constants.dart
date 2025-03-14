@@ -1,9 +1,12 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Constants{
+
     // API CONSTANTS
-    static const String baseUrl = "http://vms-backup.smartrf.io.vn:44566";
-    static const String bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhYmJkZDMzNjY4OCIsIm5hbWUiOiJkZXYiLCJpYXQiOjE1MTYyMzkwMjJ9.Kudb-qf8RCz5mpj8CG8rgYV11cWBLfTo7OPh8sQ1tHg";
+    static const String GSTC_URL = "http://giamsattauca.com:44444";
+    static const String authGSTCKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlOWFkNzhhOTRjOWJkYjRlZDJkYWZhNSIsInVzZXJuYW1lIjoiYWRtaW4iLCJpYXQiOjE3MjcxNzE2MjN9.q8WI5I7ofdyhFxjyWOJp2MCNbmu0_wrRuI_QfRKsr-s";
+    static const String VHKS_URL = "http://vms-backup.smartrf.io.vn:44566";
+    static const String authVHKSKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhYmJkZDMzNjY4OCIsIm5hbWUiOiJkZXYiLCJpYXQiOjE1MTYyMzkwMjJ9.Kudb-qf8RCz5mpj8CG8rgYV11cWBLfTo7OPh8sQ1tHg";
 
     static const String loginUrl = "http://nhatkykhaithac.vn:44567";
 

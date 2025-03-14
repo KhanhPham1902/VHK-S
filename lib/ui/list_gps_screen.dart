@@ -24,15 +24,19 @@ class _ListGpsScreenState extends State<ListGpsScreen> {
     final firstGps = widget.listGpsLog.firstOrNull;
     final lastGps = widget.listGpsLog.lastOrNull;
     if (firstGps != null && lastGps != null) {
-      if (firstGps.byteCount == 10 && lastGps.byteCount == 10 ||
-          firstGps.byteCount == 15 && lastGps.byteCount == 15) {
-        startDate = _support.format10And15GpsDateTime(lastGps.gpsResponse.time);
-        endDate = _support.format10And15GpsDateTime(firstGps.gpsResponse.time);
-      } else if (firstGps.byteCount == 23 && lastGps.byteCount == 23) {
-        startDate = _support.format23BytesDateTime(lastGps.sessionTime);
-        endDate = _support.format23BytesDateTime(firstGps.sessionTime);
+      if(firstGps.byteCount == 10 || firstGps.byteCount == 15){
+          startDate = _support.format10And15GpsDateTime(lastGps.gpsResponse.time);
+      }else if(firstGps.byteCount == 23){
+          startDate = _support.format23BytesDateTime(lastGps.sessionTime);
+      }
+
+      if(lastGps.byteCount == 10 || lastGps.byteCount == 15){
+          endDate = _support.format10And15GpsDateTime(firstGps.gpsResponse.time);
+      }else if(lastGps.byteCount == 23){
+          endDate = _support.format23BytesDateTime(firstGps.sessionTime);
       }
     }
+
     super.initState();
   }
 

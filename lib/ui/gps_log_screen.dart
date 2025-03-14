@@ -35,7 +35,6 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
   List<GpsLogInfo> listGpsLog = []; // Danh sach ban ghi gps
   static const List<LatLng> boundaryCoordinate = Constants.COORDINATES_LINE;
   final String TAG = "GpsLogScreen";
-  final String LIMIT = "1000";
   late ApiService _apiService;
   late FunctionSupport _support;
   bool _isLoading = false;
@@ -62,23 +61,16 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
 
     final now = DateTime.now();
     // Hien thi thoi gian tim kiem
-    _endDateShow = _support.formatTimeShow(
-        DateTime(now.year, now.month, now.day, 0, 0, 0)); // Ngay hien tai
-    _startDateShow = _support.formatTimeShow(
-        DateTime(now.year, now.month, now.day - 3, 0, 0, 0)); // 3 ngay truoc
+    _endDateShow = _support.formatTimeShow(DateTime(now.year, now.month, now.day, 0, 0, 0)); // Ngay hien tai
+    _startDateShow = _support.formatTimeShow(DateTime(now.year, now.month, now.day - 3, 0, 0, 0)); // 3 ngay truoc
 
     // Thoi gian gui yeu cau
-    _startDateRequest = _support.formatRequestTime(
-        DateTime.utc(now.year, now.month, now.day - 3, 0, 0, 0));
-    _endDateRequest = _support.formatRequestTime(
-        DateTime.utc(now.year, now.month, now.day, 23, 59, 59));
-    debugPrint("$TAG - Start Date: " + _startDateRequest!);
-    debugPrint("$TAG - End Date: " + _endDateRequest!);
+    _startDateRequest = _support.formatRequestTime(DateTime.utc(now.year, now.month, now.day - 3, 0, 0, 0));
+    _endDateRequest = _support.formatRequestTime(DateTime.utc(now.year, now.month, now.day, 23, 59, 59));
 
     // Lay danh sach ban ghi du lieu gps tu API
     if (widget.imei.isNotEmpty) {
-      handleListPayload(
-          true, widget.imei, _startDateRequest!, _endDateRequest!);
+      fetchListPayload(widget.imei, _startDateRequest!, _endDateRequest!);
     }
   }
 
@@ -317,23 +309,14 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
                                               // Chon ngay ket thuc
                                               InkWell(
                                                 onTap: () async {
-                                                  await _support.selectDateTime(
-                                                      context,
-                                                      _support.parseDateString(
-                                                          _startDateShow!),
-                                                      (pickedDateTime) {
-                                                    setState(() {
-                                                      _endDateShow = _support
-                                                          .formatTimeShow(
-                                                              pickedDateTime);
-                                                      _endDateRequest = _support
-                                                          .formatRequestTime(
-                                                              pickedDateTime);
-                                                    });
-                                                    debugPrint(
-                                                        "Selected end date show: $_endDateShow");
-                                                    debugPrint(
-                                                        "Selected end date request: $_endDateRequest");
+                                                  await _support.selectDateTime(context, _support.parseDateString(_startDateShow!), (pickedDateTime) {
+                                                        if (!mounted) return; // Kiểm tra widget có còn tồn tại không
+                                                        setState(() {
+                                                          _endDateShow = _support.formatTimeShow(pickedDateTime);
+                                                          _endDateRequest = _support.formatRequestTime(pickedDateTime);
+                                                        });
+                                                        debugPrint("Selected end date show: $_endDateShow");
+                                                        debugPrint("Selected end date request: $_endDateRequest");
                                                   });
                                                 },
                                                 child: Container(
@@ -359,21 +342,15 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
                                                           child: Text(
                                                             _endDateShow!,
                                                             style: const TextStyle(
-                                                                color: Colors
-                                                                    .blueAccent,
+                                                                color: Colors.blueAccent,
                                                                 fontSize: 20,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                            textAlign: TextAlign
-                                                                .center,
+                                                                fontWeight: FontWeight.bold),
+                                                            textAlign: TextAlign.center,
                                                           ),
                                                         ),
                                                         Icon(
-                                                          Icons
-                                                              .calendar_month_outlined,
-                                                          color:
-                                                              Colors.redAccent,
+                                                          Icons.calendar_month_outlined,
+                                                          color: Colors.redAccent,
                                                         ),
                                                       ],
                                                     ),
@@ -405,11 +382,7 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
                                                   ),
                                                   onPressed: () {
                                                     if (widget.imei.isNotEmpty) {
-                                                      handleListPayload(
-                                                          true,
-                                                          widget.imei,
-                                                          _startDateRequest!,
-                                                          _endDateRequest!);
+                                                      fetchListPayload(widget.imei, _startDateRequest!, _endDateRequest!);
                                                     }
                                                     setState(() {
                                                       _isShowSearch = false;
@@ -427,8 +400,7 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
                                               InkWell(
                                                 onTap: () {
                                                   setState(() {
-                                                    _isShowSearch =
-                                                        !_isShowSearch;
+                                                    _isShowSearch = !_isShowSearch;
                                                   });
                                                 },
                                                 child: Container(
@@ -530,25 +502,21 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
                       child: FloatingActionButton(
                         onPressed: () async {
                           if (listGpsLog.length > 0) {
-                            await _sendAndReceiveDataFromListGpsScreen(
-                                listGpsLog);
+                            await _sendAndReceiveDataFromListGpsScreen(listGpsLog.reversed.toList());
                             // Delay 500ms trước khi cập nhật UI
                             await Future.delayed(Duration(milliseconds: 500));
+                            // Kiểm tra mounted trước khi gọi setState
+                            if (!mounted) return;
                             // Cập nhật UI sau khi cập nhật dữ liệu
                             setState(() {
                               _isShowSearch = false;
-                              final LatLng coordinates = LatLng(
-                                  _selectedGpsLog.gpsResponse.latitude,
-                                  _selectedGpsLog.gpsResponse.longitude);
+                              final LatLng coordinates = LatLng(_selectedGpsLog.gpsResponse.latitude, _selectedGpsLog.gpsResponse.longitude);
                               _updateCamera(coordinates, 15);
                               _showInfoWindow(_selectedGpsLog);
                             });
                           } else {
                             debugPrint("$TAG - List is empty");
-                            _support.showSnackbar(
-                                context,
-                                "Không có dữ liệu nhật ký cho khoảng thời gian này\nVui lòng chọn khoảng thời gian khác",
-                                Colors.redAccent);
+                            _support.showSnackbar(context, "Không có dữ liệu nhật ký cho khoảng thời gian này\nVui lòng chọn khoảng thời gian khác", Colors.redAccent);
                           }
                         },
                         child: Icon(
@@ -633,71 +601,65 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
   }
 
   // Xu ly danh sach payload
-  Future<void> handleListPayload(
-      bool isLoading, String imei, String startTime, String endTime) async {
-    if (isLoading) {
-      _isLoading = true;
-    }
-    final formatImei = _support.formatImei(imei);
-    try {
-      listGpsLog =
-          await fetchListPayload(formatImei, startTime, endTime, LIMIT);
-
-      if (listGpsLog.isNotEmpty) {
-        setState(() {
-          _isLoading = false;
-        });
-        _setUpGpsMarker(listGpsLog);
-      } else {
-        setState(() {
-          _isLoading = false;
-          _support.showSnackbar(
-              context, "Không tìm thấy dữ liệu bản tin", Colors.red);
-        });
+  Future<void> fetchListPayload(String imei, String startTime, String endTime) async {
+      if (mounted) {
+          setState(() {
+              _isLoading = true;
+          });
       }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      debugPrint("$TAG - Lỗi: $e");
-    }
-  }
 
-  // Lay danh sach payload
-  Future<List<GpsLogInfo>> fetchListPayload(
-      String imei, String startDate, String endDate, String limit) async {
-    try {
-      List<PayloadResponse>? payloadResponse =
-          await _apiService.getListPayload(imei, startDate, endDate, limit);
+      final formatImei = _support.formatImei(imei);
 
-      if (payloadResponse != null && payloadResponse.isNotEmpty) {
-        List<GpsLogInfo> result = [];
+      try {
+          List<PayloadResponse>? payloadResponse = await _apiService.getListPayload(formatImei, startTime, endTime);
 
-        for (PayloadResponse payloadData in payloadResponse) {
-          var payload = payloadData.payload;
-          var lengthData = payloadData.length;
-          var time = payloadData.sessionTime;
+          if (payloadResponse.isNotEmpty) {
+              Set<String> uniquePayloads = {};
 
-          // Giải mã dữ liệu và thêm vào danh sách
-          dynamic gpsLogResponse = await enCodePayload(payload, lengthData);
+              for (PayloadResponse payloadData in payloadResponse) {
+                  var payload = payloadData.payload;
+                  var lengthData = payloadData.byteCount;
+                  var time = payloadData.transmitTime;
 
-          if (gpsLogResponse != null) {
-            var gpsLogInfo = GpsLogInfo(
-                gpsResponse: gpsLogResponse,
-                byteCount: lengthData,
-                sessionTime: time);
-            result.add(gpsLogInfo);
+                  if (uniquePayloads.add(payload)) {
+                      dynamic gpsLogResponse = await enCodePayload(payload, lengthData);
+
+                      if (gpsLogResponse != null) {
+                          listGpsLog.add(GpsLogInfo(
+                              gpsResponse: gpsLogResponse,
+                              byteCount: lengthData,
+                              sessionTime: time,
+                          ));
+                      }
+                  }
+              }
+
+              if (mounted) {
+                  setState(() {
+                      _isLoading = false;
+                  });
+                  if (listGpsLog.isNotEmpty) {
+                      _setUpGpsMarker(listGpsLog);
+                  } else {
+                      _support.showSnackbar(context, "Không tìm thấy dữ liệu bản tin", Colors.red);
+                  }
+              }
+          } else {
+              if (mounted) {
+                  setState(() {
+                      _isLoading = false;
+                      _support.showSnackbar(context, "Không tìm thấy dữ liệu bản tin", Colors.red);
+                  });
+              }
           }
-        }
-
-        return result;
-      } else {
-        return [];
+      } catch (e) {
+          if (mounted) {
+              setState(() {
+                  _isLoading = false;
+              });
+          }
+          debugPrint("$TAG - Lỗi: $e");
       }
-    } catch (e) {
-      print("Lỗi khi lấy danh sách payload: $e");
-      return [];
-    }
   }
 
   // Giai ma payload
@@ -835,10 +797,8 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
     double latitude = gpsLogInfo.gpsResponse.latitude;
     double longitude = gpsLogInfo.gpsResponse.longitude;
     LatLng coordinates = LatLng(latitude, longitude);
-    double distance =
-        _support.shortestDistance(coordinates, Constants.COORDINATES_LINE);
-    bool isInside =
-        _support.isPointInPolygon(coordinates, Constants.COORDINATES_LINE);
+    double distance = _support.shortestDistance(coordinates, Constants.COORDINATES_LINE);
+    _support.isPointInPolygon(coordinates, Constants.COORDINATES_LINE);
 
     _customInfoWindowController.addInfoWindow!(
       Stack(
@@ -913,19 +873,12 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
                           Colors.black),
                       _buildInfoRow(
                           "Thời gian:",
-                          (gpsLogInfo.byteCount == 10 ||
-                                  gpsLogInfo.byteCount == 15)
-                              ? _support.format10And15GpsDateTime(
-                                  gpsLogInfo.gpsResponse.time)
-                              : gpsLogInfo.byteCount == 23
-                                  ? _support.format23BytesDateTime(
-                                      gpsLogInfo.sessionTime)
-                                  : "",
+                          (gpsLogInfo.byteCount == 10 || gpsLogInfo.byteCount == 15) ? _support.format10And15GpsDateTime(gpsLogInfo.gpsResponse.time) : gpsLogInfo.byteCount == 23 ? _support.format23BytesDateTime(gpsLogInfo.sessionTime) : "",
                           Colors.black),
                       _buildInfoRow(
                           "Cách ranh giới:",
                           "${distance} hải lý",
-                          (!isInside || distance < 15)
+                          (distance < 15)
                               ? Colors.red
                               : Colors.black),
                     ],
@@ -969,10 +922,8 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
   }
 
   // Nhan du lieu tra ve tu ListGpsScreen
-  Future<void> _sendAndReceiveDataFromListGpsScreen(
-      List<GpsLogInfo> listGpsLog) async {
-    final result = await Navigator.push(
-      context,
+  Future<void> _sendAndReceiveDataFromListGpsScreen(List<GpsLogInfo> listGpsLog) async {
+    final result = await Navigator.push(context,
       MaterialPageRoute(
           builder: (context) => ListGpsScreen(
                 listGpsLog: listGpsLog,
@@ -981,9 +932,11 @@ class _GpsLogScreenState extends State<GpsLogScreen> {
 
     // Nhận dữ liệu từ Screen2 khi pop về
     if (result != null) {
-      setState(() {
-        _selectedGpsLog = result;
-      });
+        if(mounted) {
+            setState(() {
+                _selectedGpsLog = result;
+            });
+        }
     }
   }
 }

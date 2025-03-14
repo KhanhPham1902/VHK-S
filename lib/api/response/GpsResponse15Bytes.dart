@@ -14,7 +14,6 @@ class GpsResponse15Bytes{
     });
 
     factory GpsResponse15Bytes.fromJson(Map<String, dynamic> json){
-        final status = json['status'] as Map<String, dynamic>;
         return GpsResponse15Bytes(
             typeMessage: json['typeMessage'],
             latitude: json['latitude'],

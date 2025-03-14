@@ -1,20 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
-import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:vhks/api/response/token_response.dart';
-import 'package:vhks/screens/login_screen.dart';
 import 'package:vhks/ui/chat_screen.dart';
-import 'package:vhks/ui/colors.dart';
 import 'package:vhks/ui/map_screen.dart';
 import 'package:vhks/ui/profile_screen.dart';
-import 'package:vhks/utility/function_support.dart';
-
 import '../api/response/LoginResponse.dart';
-import '../utility/constants.dart';
 
 class HomeScreen extends StatefulWidget{
     final List<LoginResponse> ships;

@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:vhks/api/response/GpsResponse15Bytes.dart';
+import 'package:vhks/api/response/LastGpsResponse.dart';
 import 'package:vhks/api/response/LoginResponse.dart';
 import 'package:vhks/api/response/PayloadResponse.dart';
 import 'package:vhks/api/response/ShipResponse.dart';
@@ -17,8 +18,10 @@ import '../response/GpsResponse10Bytes.dart';
 import '../response/GpsResponse23Bytes.dart';
 
 class ApiService{
-    final String vhksUrl = Constants.baseUrl;
-    final String authKeyVHKS = Constants.bearerToken;
+    final String gstcUrl = Constants.GSTC_URL;
+    final String authKeyGSTC = Constants.authGSTCKey;
+    final String vhksUrl = Constants.VHKS_URL;
+    final String authKeyVHKS = Constants.authVHKSKey;
     final Duration timeOutDuration = const Duration(seconds: 10);
     final http.Client httpClient;
 
@@ -30,70 +33,37 @@ class ApiService{
 
 /// ================ GET =================================================
 
-    // Lay danh sach ban tin MO
-    Future<List<PayloadResponse>?> getListPayload(String imei, String startDate, String endDate, String limit) async {
-        final url = Uri.parse('$vhksUrl/api/get-mo').replace(
-            queryParameters: {
-                'imei': imei,
-                'startDate': startDate,
-                'endDate': endDate,
-                'limit': limit,
-            },
-        );
+    // Lay thong tin vi tri gan nhat
+    Future<LastGpsResponse?> getLastGpsData(String shipNumber) async {
+        final url = Uri.parse('$gstcUrl/api/ship/info/$shipNumber');
 
-        try {
+        try{
             // Sử dụng retryRequest để thử lại nếu có lỗi
             var response = await retryRequest(
                 maxAttempts: 3, // Số lần thử lại
-                delayBetweenRetries: Duration(seconds: 2), // Thời gian chờ giữa các lần thử
+                delayBetweenRetries: Duration(seconds: 2),
                 block: () => httpClient.get(
                     url,
-                    headers: {'Authorization': "Bearer $authKeyVHKS"},
+                    headers: {'Authorization': "$authKeyGSTC"},
                 ).timeout(timeOutDuration),
             );
 
-            if (response == null) {
+            if (response != null && response.statusCode == 200) {
+                debugPrint("$TAG - Last gps response: ${response.body}");
+                var jsonResponse = json.decode(response.body);
+
+                if (jsonResponse.isNotEmpty) {
+                    return LastGpsResponse.getLastGpsData(jsonResponse);
+                } else {
+                    debugPrint('$TAG - Error: Empty or invalid JSON response');
+                    return null;
+                }
+            } else if (response != null) {
+                throw Exception('$TAG - Failed to get ship info: ${response.statusCode}');
+            } else {
                 debugPrint('$TAG - Error: Request failed after retries.');
                 return null;
             }
-
-            debugPrint("$TAG - Payload response: ${response.body}");
-
-            if (response.statusCode == 200) {
-                if (response.body.isEmpty) {
-                    debugPrint('$TAG - Error: Response body is empty.');
-                    return null;
-                }
-
-                try {
-                    var jsonResponse = json.decode(response.body);
-
-                    if (jsonResponse is List && jsonResponse.isNotEmpty) {
-                        return jsonResponse
-                            .map((item) {
-                            try {
-                                return PayloadResponse.fromJson(item as Map<String, dynamic>);
-                            } catch (e) {
-                                debugPrint('$TAG - Error parsing item: $item');
-                                return null;
-                            }
-                        })
-                            .whereType<PayloadResponse>() // Loại bỏ các giá trị null khỏi danh sách
-                            .toList();
-                    } else {
-                        debugPrint('$TAG - Error: Invalid JSON response format');
-                        return null;
-                    }
-                } catch (e) {
-                    debugPrint('$TAG - Error: JSON parsing failed - $e');
-                    return null;
-                }
-            } else {
-                print(Exception('$TAG - Failed to get payload info: ${response.statusCode}'));
-                debugPrint('$TAG - Response body: ${response.body}');
-                return null;
-            }
-
         } on TimeoutException {
             debugPrint('$TAG - Error: Connection timeout while decoding payload data');
             return null;
@@ -106,6 +76,73 @@ class ApiService{
         } catch (e) {
             debugPrint('$TAG - Unexpected error: $e');
             return null;
+        }
+    }
+
+    // Lay danh sach ban tin MO
+    Future<List<PayloadResponse>> getListPayload(String imei, String startDate, String endDate) async {
+        final url = Uri.parse('$gstcUrl/api/v2/iri/response/$imei/$startDate/$endDate');
+
+        try {
+            var response = await retryRequest(
+                maxAttempts: 3,
+                delayBetweenRetries: Duration(seconds: 2),
+                block: () => httpClient.get(
+                    url,
+                    headers: {'Authorization': "$authKeyGSTC"},
+                ).timeout(timeOutDuration),
+            );
+
+            if (response == null) {
+                debugPrint('$TAG - Error: Request failed after retries.');
+                return [];
+            }
+
+            debugPrint("$TAG - Payload response: ${response.body}");
+
+            if (response.statusCode == 200) {
+                if (response.body.isEmpty) {
+                    debugPrint('$TAG - Error: Response body is empty.');
+                    return [];
+                }
+
+                try {
+                    var jsonResponse = json.decode(response.body);
+                    List<PayloadResponse> payloadList = PayloadResponse.fromJson(jsonResponse);
+
+                    // Lọc bỏ null và loại bỏ phần tử trùng lặp
+                    List<PayloadResponse> uniquePayloads = payloadList
+                        .where((payload) => payload != null) // Loại bỏ null
+                        .toSet()
+                        .toList(); // Loại bỏ phần tử trùng lặp
+
+                    if (uniquePayloads.isNotEmpty) {
+                        return uniquePayloads;
+                    } else {
+                        debugPrint('$TAG - No data found.');
+                        return [];
+                    }
+                } catch (e) {
+                    debugPrint('$TAG - Error: JSON parsing failed - $e');
+                    return [];
+                }
+            } else {
+                debugPrint('$TAG - Failed to get payload info: ${response.statusCode}');
+                debugPrint('$TAG - Response body: ${response.body}');
+                return [];
+            }
+        } on TimeoutException {
+            debugPrint('$TAG - Error: Connection timeout while decoding payload data');
+            return [];
+        } on SocketException {
+            debugPrint('$TAG - Error: No Internet connection or server unreachable.');
+            return [];
+        } on FormatException {
+            debugPrint('$TAG - Error: Invalid JSON format in response.');
+            return [];
+        } catch (e) {
+            debugPrint('$TAG - Unexpected error: $e');
+            return [];
         }
     }
 

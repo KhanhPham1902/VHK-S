@@ -13,10 +13,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vhks/api/response/LoginResponse.dart';
 import 'package:vhks/api/response/token_response.dart';
+import 'package:vhks/database/ShipInfoDB.dart';
 import 'package:vhks/ui/fee_history_screen.dart';
 import 'package:vhks/ui/payment_item.dart';
 import 'package:vhks/ui/select_ship_item.dart';
 
+import '../database/DatabaseService.dart';
 import '../screens/login_screen.dart';
 import '../ui/colors.dart';
 
@@ -107,12 +109,8 @@ class FunctionSupport {
       LatLng p2 = polygon[(i + 1) % count];
 
       // Kiểm tra nếu đường ray từ 'point' cắt qua cạnh (p1, p2)
-      if ((p1.longitude > point.longitude) !=
-          (p2.longitude > point.longitude)) {
-        double xIntersection = (p2.latitude - p1.latitude) *
-                (point.longitude - p1.longitude) /
-                (p2.longitude - p1.longitude) +
-            p1.latitude;
+      if ((p1.longitude > point.longitude) != (p2.longitude > point.longitude)) {
+        double xIntersection = (p2.latitude - p1.latitude) * (point.longitude - p1.longitude) / (p2.longitude - p1.longitude) + p1.latitude;
 
         if (point.latitude < xIntersection) {
           intersections++;
@@ -345,74 +343,75 @@ class FunctionSupport {
   // Dialog select ship
   void showSelectShipDialog(BuildContext outerContext, String title,
       List<LoginResponse> ships, Function(LoginResponse) onTap) {
-    showModalBottomSheet(
-        context: outerContext,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
-        ),
-        builder: (BuildContext context) {
-          return ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(15.0)),
-            child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10.0, vertical: 10.0),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(15.0)),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Thanh kéo modal
-                    Container(
-                      width: 40,
-                      height: 5,
-                      margin: const EdgeInsets.only(bottom: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[400],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    Text(title,
-                        style: TextStyle(
-                            fontSize: 18.0,
-                            color: Colors.blueAccent,
-                            fontWeight: FontWeight.w600)),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    // List ship
-                    Flexible(
-                      child: ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        shrinkWrap: true,
-                        cacheExtent: 200,
-                        itemCount: ships.length,
-                        itemBuilder: (context, index) {
-                          final ship = ships[index];
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: 10),
-                            child: SelectShipItem(
-                              shipNumber: ship.shipName,
-                              onTap: () {
-                                Navigator.pop(context);
-                                Future.delayed(Duration(milliseconds: 200), () {
-                                  onTap(ship);
-                                });
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                )),
-          );
-        });
+      showModalBottomSheet(
+          context: outerContext,
+          isScrollControlled: true,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
+          ),
+          builder: (BuildContext context) {
+              return LayoutBuilder(
+                  builder: (context, constraints) {
+                      double maxHeight = constraints.maxHeight * 0.5; // Giới hạn chiều cao tối đa 50% màn hình
+                      return ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(15.0)),
+                          child: Container(
+                              constraints: BoxConstraints(maxHeight: maxHeight),
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+                              decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
+                              ),
+                              child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                      // Thanh kéo modal
+                                      Container(
+                                          width: 40,
+                                          height: 5,
+                                          margin: const EdgeInsets.only(bottom: 10),
+                                          decoration: BoxDecoration(
+                                              color: Colors.grey[400],
+                                              borderRadius: BorderRadius.circular(10),
+                                          ),
+                                      ),
+                                      Text(title,
+                                          style: TextStyle(
+                                              fontSize: 18.0,
+                                              color: Colors.blueAccent,
+                                              fontWeight: FontWeight.w600)),
+                                      const SizedBox(height: 10),
+                                      Flexible(
+                                          child: ListView.builder(
+                                              physics: const BouncingScrollPhysics(),
+                                              shrinkWrap: true,
+                                              itemCount: ships.length,
+                                              itemBuilder: (context, index) {
+                                                  final ship = ships[index];
+                                                  return Padding(
+                                                      padding: EdgeInsets.only(bottom: 10),
+                                                      child: SelectShipItem(
+                                                          shipNumber: ship.shipName,
+                                                          onTap: () {
+                                                              Navigator.pop(context);
+                                                              Future.delayed(Duration(milliseconds: 200), () {
+                                                                  onTap(ship);
+                                                              });
+                                                          },
+                                                      ),
+                                                  );
+                                              },
+                                          ),
+                                      ),
+                                  ],
+                              ),
+                          ),
+                      );
+                  },
+              );
+          },
+      );
   }
 
   // Dialog thong tin cuoc phi
@@ -707,6 +706,11 @@ class FunctionSupport {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     debugPrint("$TAG - Đã xóa toàn bộ dữ liệu SharedPreferences");
+
+    // Xoa du lieu khoi sqlite database
+    int deletedRows = await ShipInfoDB().deleteAllLogs();
+    debugPrint("$TAG - Đã xóa $deletedRows bản ghi khỏi local database");
+
     navigateAndFinish(context, LoginScreen());
   }
 
@@ -811,8 +815,8 @@ class FunctionSupport {
   }
 
   String format23BytesDateTime(String input) {
-    DateFormat inputFormat = DateFormat("MM/dd/yyyy, HH:mm:ss");
-    DateTime dateTime = inputFormat.parse(input);
+    DateFormat inputFormat = DateFormat("dd/MM/yyyy, HH:mm:ss");
+    DateTime dateTime = inputFormat.parse(input).add(Duration(hours: 7));
     DateFormat outputFormat = DateFormat("dd/MM HH:mm");
     return outputFormat.format(dateTime);
   }
@@ -831,7 +835,7 @@ class FunctionSupport {
   // Dinh dang thoi gian gui yeu cau
   String formatRequestTime(DateTime requestTime) {
     try {
-      return DateFormat("yyyy-MM-ddTHH:mm:ssZ").format(requestTime.toUtc());
+      return DateFormat("ddMMyyyy").format(requestTime.toUtc());
     } catch (e) {
       print("Lỗi định dạng thời gian: $e");
       return "";
@@ -879,22 +883,27 @@ class FunctionSupport {
 
   // Tinh khoang thoi gian giua hai thoi diem
   String calculateElapsedTime(String inputDateTime) {
-    DateTime parsedDateTime = DateTime.parse(inputDateTime);
+      DateTime parsedDateTime = DateTime.parse(inputDateTime);
+      DateTime now = DateTime.now();
+      Duration difference = now.difference(parsedDateTime);
 
-    DateTime now = DateTime.now();
+      int days = difference.inDays;
+      int hours = difference.inHours % 24;
+      int minutes = difference.inMinutes % 60;
 
-    Duration difference = now.difference(parsedDateTime);
-
-    int days = difference.inDays;
-    int hours = difference.inHours % 24;
-    int minutes = difference.inMinutes % 60;
-
-    String result = "";
-    if (days > 0) result += "$days ngày ";
-    if (hours > 0) result += "$hours giờ ";
-    if (minutes > 0) result += "$minutes phút";
-
-    return result.trim();
+      if (days > 0) {
+          if(hours > 0) {
+              return "$days ngày $hours giờ";
+          }else{
+              return "$days ngày $minutes phút";
+          }
+      } else {
+          if(hours > 0) {
+              return "$hours giờ $minutes phút";
+          }else{
+              return "$minutes phút";
+          }
+      }
   }
 
   // Tinh khoang thoi gian giua thoi diem hien tai va thoi diem nhat dinh theo phut

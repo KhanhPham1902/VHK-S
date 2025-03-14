@@ -1,14 +1,10 @@
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
-import 'package:device_preview/device_preview.dart';
-import 'package:vhks/screens/home_screen.dart';
 import 'package:vhks/screens/splash_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:vhks/service/noti_service.dart';
-import 'package:vhks/ui/fee_screen.dart';
-import 'package:vhks/ui/gps_log_screen.dart';
 
-void main() {
+void main() async {
     WidgetsFlutterBinding.ensureInitialized();
 
     // Khoi tao thong bao

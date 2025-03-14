@@ -119,13 +119,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 Text(
                                   listShipNumber.isNotEmpty
-                                      ? (listShipNumber.length > 3
+                                      ? (listShipNumber.length > 2
                                           ? listShipNumber
-                                                  .take(3)
+                                                  .take(2)
                                                   .map((shipNumber) =>
                                                       shipNumber.toString())
                                                   .join('\n') +
-                                              '\n...+${listShipNumber.length - 3}'
+                                              '\n...+${listShipNumber.length - 2}'
                                           : listShipNumber
                                               .map((shipNumber) =>
                                                   shipNumber.toString())
@@ -183,13 +183,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 Text(
                                   listCaptain.isNotEmpty
-                                      ? (listCaptain.length > 3
+                                      ? (listCaptain.length > 2
                                           ? listCaptain
-                                                  .take(3)
+                                                  .take(2)
                                                   .map((shipNumber) =>
                                                       shipNumber.toString())
                                                   .join('\n') +
-                                              '\n...+${listCaptain.length - 3}'
+                                              '\n...+${listCaptain.length - 2}'
                                           : listCaptain
                                               .map((shipNumber) =>
                                                   shipNumber.toString())
@@ -255,12 +255,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         decoration: BoxDecoration(
                             color: AppColors.blur_black,
                             borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.black38,
-                                  offset: const Offset(-5, 5),
-                                  blurRadius: 12)
-                            ]),
+                            ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -297,13 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                             color: AppColors.blur_black,
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.black38,
-                                  offset: const Offset(-5, 5),
-                                  blurRadius: 12)
-                            ]),
+                            borderRadius: BorderRadius.circular(15),),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -340,13 +329,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                             color: AppColors.blur_black,
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.black38,
-                                  offset: const Offset(-5, 5),
-                                  blurRadius: 12)
-                            ]),
+                            borderRadius: BorderRadius.circular(15),),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -383,13 +366,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                             color: AppColors.blur_black,
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.black38,
-                                  offset: const Offset(-5, 5),
-                                  blurRadius: 12)
-                            ]),
+                            borderRadius: BorderRadius.circular(15),),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [

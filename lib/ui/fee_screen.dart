@@ -85,106 +85,104 @@ class _FeeScreenState extends State<FeeScreen> {
                             ),
                         )
 
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                                // Thong tin so du va so no
-                                Container(
-                                    width: double.maxFinite,
-                                    margin: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                                    padding: EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                        color: Colors.blueAccent.shade100,
-                                        borderRadius: BorderRadius.circular(15),
-                                        boxShadow: [
-                                            BoxShadow(
-                                                color: Colors.black26,
-                                                blurRadius: 5,
-                                                spreadRadius: 2
-                                            )
-                                        ]
-                                    ),
-                                    child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                            // So du
-                                            Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                    Text(
-                                                        'Số dư cước',
-                                                        style: TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight: FontWeight.normal,
-                                                        ),
-                                                    ),
-                                                    Text(
-                                                        (_feeData[widget.ships.first.shipId]!.balance > 0)
-                                                            ? "${_support.formatMoney(_feeData[widget.ships.first.shipId]!.balance)} VNĐ"
-                                                            : "0 VNĐ",
-                                                        style: TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight: FontWeight.bold,
-                                                        ),
-                                                    ),
-                                                ],
-                                            ),
+                        : Expanded(
+                          child: Column(
+                              children: [
+                                  // Thong tin so du va so no
+                                  Container(
+                                      width: double.maxFinite,
+                                      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                                      padding: EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                          color: Colors.blueAccent.shade100,
+                                          borderRadius: BorderRadius.circular(15),
+                                          boxShadow: [
+                                              BoxShadow(
+                                                  color: Colors.black26,
+                                                  blurRadius: 5,
+                                                  spreadRadius: 2
+                                              )
+                                          ]
+                                      ),
+                                      child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                              // So du
+                                              Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                      Text(
+                                                          'Số dư cước',
+                                                          style: TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight: FontWeight.normal,
+                                                          ),
+                                                      ),
+                                                      Text(
+                                                          (_feeData[widget.ships.first.shipId]!.balance > 0)
+                                                              ? "${_support.formatMoney(_feeData[widget.ships.first.shipId]!.balance)} VNĐ"
+                                                              : "0 VNĐ",
+                                                          style: TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight: FontWeight.bold,
+                                                          ),
+                                                      ),
+                                                  ],
+                                              ),
+                          
+                                              const SizedBox(height: 5,),
+                          
+                                              // So tien no
+                                              Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                      Text(
+                                                          'Số tiền còn nợ',
+                                                          style: TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight: FontWeight.normal,
+                                                          ),
+                                                      ),
+                                                      Text(
+                                                          (_feeData[widget.ships.first.shipId]!.balance < 0)
+                                                              ? "${_support.formatMoney(-_feeData[widget.ships.first.shipId]!.balance)} VNĐ"
+                                                              : "0 VNĐ",
+                                                          style: TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight: FontWeight.bold,
+                                                          ),
+                                                      ),
+                                                  ],
+                                              ),
+                                          ],
+                                      ),
+                                  ),
+                          
+                                  // Thong tin cuoc phi tung tau
+                                  Expanded(
+                                      child: ListView.separated(
+                                          physics: const BouncingScrollPhysics(),
+                                          itemCount: widget.ships.length,
+                                          separatorBuilder: (_, index) => const SizedBox(height: 10),
+                                          itemBuilder: (context, index) {
+                                              final ship = widget.ships[index];
+                                              final feeResponse = _feeData[ship.shipId];
 
-                                            const SizedBox(height: 5,),
+                                              final feeInfo = FeeInfo(shipNumber: ship.shipName, feeResponse: feeResponse!);
 
-                                            // So tien no
-                                            Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                    Text(
-                                                        'Số tiền còn nợ',
-                                                        style: TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight: FontWeight.normal,
-                                                        ),
-                                                    ),
-                                                    Text(
-                                                        (_feeData[widget.ships.first.shipId]!.balance < 0)
-                                                            ? "${_support.formatMoney(-_feeData[widget.ships.first.shipId]!.balance)} VNĐ"
-                                                            : "0 VNĐ",
-                                                        style: TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight: FontWeight.bold,
-                                                        ),
-                                                    ),
-                                                ],
-                                            ),
-                                        ],
-                                    ),
-                                ),
+                                              return FeeItem(
+                                                  feeInfo: feeInfo,
+                                                  onTap: (feeInfo) {
+                                                      _support.showSelectFeeDialog(context, feeInfo.shipNumber, ship.shipId, feeInfo.feeResponse.status, widget.tokenResponse);
+                                                  },
+                                              );
+                                          },
+                                      ),
+                                  ),
 
-                                // Thong tin cuoc phi tung tau
-                                SizedBox(
-                                    width: double.maxFinite,
-                                    height: MediaQuery.of(context).size.height * 0.6, // Chiều cao tối đa khoảng 60% màn hình
-                                    child: ListView.separated(
-                                        shrinkWrap: true,
-                                        physics: const BouncingScrollPhysics(),
-                                        itemCount: widget.ships.length,
-                                        separatorBuilder: (_, index) => const SizedBox(height: 10),
-                                        itemBuilder: (context, index) {
-                                            final ship = widget.ships[index];
-                                            final feeResponse = _feeData[ship.shipId];
-
-                                            final feeInfo = FeeInfo(shipNumber: ship.shipName, feeResponse: feeResponse!);
-
-                                            return FeeItem(
-                                                feeInfo: feeInfo,
-                                                onTap: (feeInfo) {
-                                                    _support.showSelectFeeDialog(context, feeInfo.shipNumber, ship.shipId, feeInfo.feeResponse.status, widget.tokenResponse);
-                                                },
-                                            );
-                                        },
-                                    ),
-                                ),
-
-                                const SizedBox(height: 15,),
-                            ],
+                                  const SizedBox(height: 20),
+                              ],
+                          ),
                         ),
                   ],
                 ),

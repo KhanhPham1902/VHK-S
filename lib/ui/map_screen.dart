@@ -7,7 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vhks/api/response/PayloadResponse.dart';
+import 'package:vhks/api/response/LastGpsResponse.dart';
 import 'package:vhks/api/response/ShipResponse.dart';
 import 'package:vhks/service/noti_service.dart';
 import 'package:vhks/ui/gps_log_screen.dart';
@@ -31,7 +31,6 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final String TAG = "MapScreen";
-  final String LIMIT = "100";
   bool _isMapReady = false;
   late ShipInfoDB shipInfoDB;
   late ApiService _apiService;
@@ -63,13 +62,13 @@ class _MapScreenState extends State<MapScreen> {
     _addPolyline();
 
     for (LoginResponse ship in widget.ships) {
-      fetchShipInfo(1, ship.shipName);
+      fetchShipInfo(true, ship.shipName);
     }
 
     // Đặt Timer để cập nhật mỗi 10 phút
     timer = Timer.periodic(Duration(minutes: 10), (timer) {
       for (LoginResponse ship in widget.ships) {
-        fetchShipInfo(0, ship.shipName);
+        fetchShipInfo(false, ship.shipName);
       }
     });
   }
@@ -201,7 +200,7 @@ class _MapScreenState extends State<MapScreen> {
                     child: FloatingActionButton(
                       onPressed: () async {
                         for (LoginResponse ship in widget.ships) {
-                          await fetchShipInfo(2, ship.shipName);
+                          await fetchShipInfo(true, ship.shipName);
                         }
                       },
                       child: Icon(
@@ -248,105 +247,108 @@ class _MapScreenState extends State<MapScreen> {
                   // Thong tin tau hien tai
                   Positioned(
                     bottom: 10,
-                    right: 30,
-                    left: 30,
-                    child: Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    right: 15,
+                    left: 15,
+                    child: IntrinsicWidth(// Chiều rộng tự động theo nội dung
+                      child: IntrinsicHeight(// Chiều cao tự động theo nội dung
+                        child: Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                "Số hiệu tàu",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.normal),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Số hiệu tàu",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.normal),
+                                  ),
+                                  Text(
+                                    currentShip != null ? currentShip! : "",
+                                    style: TextStyle(
+                                        fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                currentShip != null ? currentShip! : "",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              Container(
+                                child: const Divider(
+                                  color: Colors.black38,
+                                  thickness: 1.5,
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Vĩ độ",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.normal),
+                                  ),
+                                  Text(
+                                    currentLat != null ? currentLat! : "",
+                                    style: TextStyle(
+                                        fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                child: const Divider(
+                                  color: Colors.black38,
+                                  thickness: 1.5,
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Kinh độ",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.normal),
+                                  ),
+                                  Text(
+                                    currentLong != null ? currentLong! : "",
+                                    style: TextStyle(
+                                        fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                child: const Divider(
+                                  color: Colors.black38,
+                                  thickness: 1.5,
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Kể từ bản tin gần nhất",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.normal),
+                                  ),
+                                  Text(
+                                    currentElapsedTime != null
+                                        ? currentElapsedTime!
+                                        : "",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: _support.setColorElapsedTime(currentTimeDate)),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          Container(
-                            child: const Divider(
-                              color: Colors.black38,
-                              thickness: 1.5,
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Vĩ độ",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.normal),
-                              ),
-                              Text(
-                                currentLat != null ? currentLat! : "",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            child: const Divider(
-                              color: Colors.black38,
-                              thickness: 1.5,
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Kinh độ",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.normal),
-                              ),
-                              Text(
-                                currentLong != null ? currentLong! : "",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            child: const Divider(
-                              color: Colors.black38,
-                              thickness: 1.5,
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Kể từ bản tin gần nhất",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.normal),
-                              ),
-                              Text(
-                                currentElapsedTime != null
-                                    ? currentElapsedTime!
-                                    : "",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: _support
-                                        .setColorElapsedTime(currentTimeDate)),
-                              ),
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -357,47 +359,25 @@ class _MapScreenState extends State<MapScreen> {
                     left: 20,
                     child: FloatingActionButton(
                       onPressed: () {
-                        _support.showSelectShipDialog(
-                            context, "Danh sách tàu", widget.ships,
-                            (ship) async {
-                          debugPrint("$TAG - Selected ship: ${ship.shipName}");
+                        _support.showSelectShipDialog(context, "Danh sách tàu", widget.ships, (ship) async {
                           try {
-                            ShipResponse? shipResponse =
-                                await _apiService.getShipInfo(ship.shipName);
+                            ShipResponse? shipResponse = await _apiService.getShipInfo(ship.shipName);
                             if (shipResponse != null) {
                               // Gọi API lấy dữ liệu vị trí
-                              final now = DateTime.now();
-                              final startDate = _support.formatRequestTime(
-                                  DateTime.utc(
-                                      now.year, now.month, now.day, 0, 0, 0));
-                              final endDate = _support.formatRequestTime(
-                                  DateTime.utc(now.year, now.month, now.day, 23,
-                                      59, 59));
-                              final formatImei =
-                                  _support.formatImei(shipResponse.imei);
-                              dynamic gpsResponse = await fetchLastData(
-                                  formatImei, startDate, endDate, LIMIT);
+                              LastGpsResponse? gpsResponse = await fetchLastGpsData(false, shipResponse);
 
                               if (gpsResponse != null) {
-                                final LatLng coordinates = LatLng(
-                                    gpsResponse.latitude,
-                                    gpsResponse.longitude);
-                                final String timeDate = _support
-                                    .formatInputElapsedTime(gpsResponse.time);
-                                final int elapsedTime =
-                                    _support.calculateTimeBetween(timeDate);
+                                final LatLng coordinates = LatLng(gpsResponse.latitude, gpsResponse.longitude);
+                                final String timeDate = _support.formatInputElapsedTime(gpsResponse.time);
+                                final int elapsedTime = _support.calculateTimeBetween(timeDate);
 
-                                String? shipStatus =
-                                    setShipStatus(gpsResponse, elapsedTime);
-                                Color? shipColor =
-                                    setShipColor(gpsResponse, elapsedTime);
+                                String? shipStatus = setShipStatus(elapsedTime);
+                                Color? shipColor = setShipColor(elapsedTime);
 
                                 // Delay 500ms trước khi cập nhật UI
-                                await Future.delayed(
-                                    Duration(milliseconds: 500));
+                                await Future.delayed(Duration(milliseconds: 300));
                                 _updateCamera(coordinates, 15);
-                                _showInfoWindow(shipResponse, gpsResponse,
-                                    shipStatus!, shipColor!);
+                                _showInfoWindow(shipResponse, gpsResponse, shipStatus!, shipColor!);
 
                                 setState(() {
                                   currentShip = ship.shipName;
@@ -406,10 +386,7 @@ class _MapScreenState extends State<MapScreen> {
                             }
                           } catch (exception) {
                             print("$TAG - $exception");
-                            _support.showSnackbar(
-                                context,
-                                "Đã có lỗi xảy ra trong quá trình lấy dữ liệu!",
-                                Colors.redAccent);
+                            _support.showSnackbar(context, "Đã có lỗi xảy ra trong quá trình lấy dữ liệu!", Colors.redAccent);
                           }
                         });
                       },
@@ -445,8 +422,7 @@ class _MapScreenState extends State<MapScreen> {
   // Di chuyen camera den vi tri cu the
   Future<void> _updateCamera(LatLng coordinate, double zoomValue) async {
     try {
-      if (_isMapReady &&
-          _customInfoWindowController.googleMapController != null) {
+      if (_isMapReady && _customInfoWindowController.googleMapController != null) {
         await _customInfoWindowController.googleMapController?.animateCamera(
           CameraUpdate.newCameraPosition(
             CameraPosition(
@@ -457,7 +433,7 @@ class _MapScreenState extends State<MapScreen> {
           ),
         );
 
-        await Future.delayed(Duration(milliseconds: 1000));
+        await Future.delayed(Duration(milliseconds: 500));
       } else {
         debugPrint('MapController is not initialized.');
       }
@@ -483,8 +459,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   // Ve markers
-  Future<void> _setUpMarker(
-      int isFirstOrReload, ShipResponse shipResponse, dynamic response) async {
+  Future<void> _setUpMarker(bool isFirstOrReload, ShipResponse shipResponse, LastGpsResponse response) async {
     int retryCount = 0;
     while (!_isMapReady && retryCount < 50) {
       // Giới hạn tối đa 5 giây (50 * 100ms)
@@ -497,28 +472,17 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
-    debugPrint(
-        "🟢 Map đã sẵn sàng, bắt đầu vẽ marker cho tàu: ${shipResponse.shipNumber}");
+    debugPrint("🟢 Map đã sẵn sàng, bắt đầu vẽ marker cho tàu: ${shipResponse.shipNumber}");
 
     LatLng coordinates = LatLng(response.latitude, response.longitude);
     String timeDate = _support.formatInputElapsedTime(response.time);
     int elapsedTime = _support.calculateTimeBetween(timeDate);
-    int typeMessage = response.typeMessage;
 
     Uint8List resizedImage;
-    String? shipStatus = setShipStatus(response, elapsedTime);
-    Color? shipColor = setShipColor(response, elapsedTime);
-    bool isSOS;
+    String? shipStatus = setShipStatus(elapsedTime);
+    Color? shipColor = setShipColor(elapsedTime);
 
-    if (typeMessage == 4) {
-      isSOS = true;
-    } else {
-      isSOS = false;
-    }
-
-    if (isSOS) {
-      resizedImage = await _support.resizeImage('assets/sos_ship.png', 60);
-    } else if (elapsedTime >= 240) {
+    if (elapsedTime >= 240) {
       resizedImage = await _support.resizeImage('assets/dis_ship.png', 60);
     } else {
       resizedImage = await _support.resizeImage('assets/con_ship.png', 60);
@@ -532,78 +496,52 @@ class _MapScreenState extends State<MapScreen> {
       onTap: () async {
         // Delay 500ms trước khi cập nhật UI
         await Future.delayed(Duration(milliseconds: 500));
+        if (!mounted) return; // 🔹 Kiểm tra trước khi gọi hàm cập nhật UI
         _updateCamera(coordinates, 15);
         _showInfoWindow(shipResponse, response, shipStatus!, shipColor!);
 
         setState(() {
-          currentShip = shipResponse.shipNumber;
-          currentLat = _support.convertToDMS(response.latitude, true);
-          currentLong = _support.convertToDMS(response.longitude, false);
-          currentTimeDate = _support.formatInputElapsedTime(response.time);
-          currentElapsedTime = _support.calculateElapsedTime(timeDate);
+            currentShip = shipResponse.shipNumber;
+            currentLat = _support.convertToDMS(response.latitude, true);
+            currentLong = _support.convertToDMS(response.longitude, false);
+            currentTimeDate = _support.formatInputElapsedTime(response.time);
+            currentElapsedTime = _support.calculateElapsedTime(timeDate);
         });
       },
     );
 
     setState(() {
-      _markers.add(newMarker);
-      _markers = Set.from(_markers);
-      debugPrint("📌 Tổng số markers sau khi cập nhật: ${_markers.length}");
+        _markers.add(newMarker);
+        _markers = Set.from(_markers);
+        debugPrint("📌 Tổng số markers sau khi cập nhật: ${_markers.length}");
     });
 
-    if (isFirstOrReload == 1 || isFirstOrReload == 2) {
+    if (isFirstOrReload && mounted) {
       // Hiển thị cảnh báo
-      await showWarningAlert(
-          context, shipResponse.shipNumber, coordinates, response);
+      await showWarningAlert(context, shipResponse.shipNumber, coordinates, response);
     }
   }
 
   // Thiet lap trang thai cho marker
-  String? setShipStatus(dynamic response, int elapsedTime) {
-    bool? isSOS;
-    int typeMessage = response.typeMessage;
-
-    if (typeMessage == 4) {
-      isSOS = true;
-    } else {
-      isSOS = false;
-    }
-
-    return isSOS
-        ? "Đang gặp sự cố"
-        : elapsedTime >= 240
+  String? setShipStatus(int elapsedTime) {
+    return elapsedTime >= 240
             ? "Mất kết nối"
             : "Đang kết nối";
   }
 
   // Thiet lap mau cho marker
-  Color? setShipColor(dynamic response, int elapsedTime) {
-    bool? isSOS;
-    int typeMessage = response.typeMessage;
-
-    if (typeMessage == 4) {
-      isSOS = true;
-    } else {
-      isSOS = false;
-    }
-
-    return isSOS
-        ? AppColors.red
-        : elapsedTime >= 240
+  Color? setShipColor(int elapsedTime) {
+    return elapsedTime >= 240
             ? AppColors.gray
             : AppColors.green;
   }
 
   // Hiển thị infoWindow
-  Future<void> _showInfoWindow(ShipResponse shipResponse, dynamic response,
-      String shipStatus, Color shipColor) async {
+  Future<void> _showInfoWindow(ShipResponse shipResponse, LastGpsResponse response, String shipStatus, Color shipColor) async {
     double latitude = response.latitude;
     double longitude = response.longitude;
     LatLng coordinates = LatLng(latitude, longitude);
-    double distance =
-        _support.shortestDistance(coordinates, Constants.COORDINATES_LINE);
-    bool isInside =
-        _support.isPointInPolygon(coordinates, Constants.COORDINATES_LINE);
+    double distance = _support.shortestDistance(coordinates, Constants.COORDINATES_LINE);
 
     _customInfoWindowController.addInfoWindow!(
       Stack(
@@ -637,28 +575,14 @@ class _MapScreenState extends State<MapScreen> {
                               fontWeight: FontWeight.bold,
                               color: shipColor)),
                       SizedBox(height: 5),
-                      _buildInfoRow("Số hiệu tàu:", shipResponse.shipNumber,
-                          Colors.black),
-                      _buildInfoRow(
-                          "Chủ tàu:", shipResponse.owner, Colors.black),
-                      _buildInfoRow(
-                          "Thuyền trưởng:", shipResponse.captain, Colors.black),
-                      _buildInfoRow("Vĩ độ:",
-                          _support.convertToDMS(latitude, true), Colors.black),
-                      _buildInfoRow(
-                          "Kinh độ:",
-                          _support.convertToDMS(longitude, false),
-                          Colors.black),
-                      _buildInfoRow("Tốc độ:", "${response.speed} hải lý/h",
-                          Colors.black),
-                      _buildInfoRow("Bản tin gần nhất:",
-                          _support.formatDateTime(response.time), Colors.black),
-                      _buildInfoRow(
-                          "Cách ranh giới:",
-                          "${distance} hải lý",
-                          (!isInside || distance < 15)
-                              ? Colors.red
-                              : Colors.black),
+                      _buildInfoRow("Số hiệu tàu:", shipResponse.shipNumber, Colors.black),
+                      _buildInfoRow("Chủ tàu:", shipResponse.owner, Colors.black),
+                      _buildInfoRow("Thuyền trưởng:", shipResponse.captain, Colors.black),
+                      _buildInfoRow("Vĩ độ:", _support.convertToDMS(latitude, true), Colors.black),
+                      _buildInfoRow("Kinh độ:", _support.convertToDMS(longitude, false), Colors.black),
+                      _buildInfoRow("Tốc độ:", "${response.speed} hải lý/h", Colors.black),
+                      _buildInfoRow("Bản tin gần nhất:", _support.formatDateTime(response.time), Colors.black),
+                      _buildInfoRow("Cách ranh giới:", "${distance} hải lý", distance < 15 ? Colors.red : Colors.black),
                     ],
                   ),
                 ),
@@ -687,9 +611,7 @@ class _MapScreenState extends State<MapScreen> {
             SizedBox(
               width: 10,
             ),
-            Text(value,
-                style: TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.bold, color: color)),
+            Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
           ],
         ),
         SizedBox(height: 2),
@@ -698,168 +620,111 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   // Lay thong tin tau
-  Future<void> fetchShipInfo(int isFirstOrReload, String shipNumber) async {
-    if (isFirstOrReload == 1 || isFirstOrReload == 2) {
-      setState(() {
-        _isLoading = true;
-      });
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-    try {
-      ShipResponse? shipResponse = await _apiService.getShipInfo(shipNumber);
-      if (shipResponse != null) {
-        // Kiem tra xem thong tin cua tau da co trong database hay chua?
-        if (await shipInfoDB.isDataExist(shipResponse.imei)) {
-          debugPrint("$TAG - Dữ liệu đã tồn tại");
-        } else {
-          // Luu thong tin tau vao database
-          int? isInsert =
-              await shipInfoDB.insertData(shipResponse: shipResponse);
-          if (isInsert == null) {
-            debugPrint("$TAG - Không thể thêm dữ liệu cho tàu này");
-          } else {
-            debugPrint("$TAG - Thêm dữ liệu thành công");
+  Future<void> fetchShipInfo(bool isFirstOrReload, String shipNumber) async {
+      if (isFirstOrReload) {
+          if (mounted) {
+              setState(() {
+                  _isLoading = true;
+              });
           }
-        }
-
-        currentShip = shipResponse.shipNumber;
-
-        // Luu thong tin chu tau va so dien thoai
-        _saveShipInfo(shipResponse);
-
-        // Lay thong tin vi tri theo id tau
-        handleCurrentData(isFirstOrReload, shipResponse);
-      } else {
-        _support.showSnackbar(
-            context, "Không tìm thấy thông tin tàu", Colors.redAccent);
-      }
-    } catch (exception) {
-      print("$TAG - $exception");
-      _support.showSnackbar(context,
-          "Đã có lỗi xảy ra trong quá trình lấy dữ liệu!", Colors.redAccent);
-    }
-  }
-
-  // Xu ly du lieu vi tri hien tai
-  Future<void> handleCurrentData(
-      int isFirstOrReload, ShipResponse response) async {
-    try {
-      final now = DateTime.now();
-      final startDate = _support.formatRequestTime(
-          DateTime.utc(now.year, now.month, now.day, 0, 0, 0));
-      final endDate = _support.formatRequestTime(
-          DateTime.utc(now.year, now.month, now.day, 23, 59, 59));
-      final formatImei = _support.formatImei(response.imei);
-
-      // Bắt đầu tải dữ liệu
-      _isLoading = true;
-      setState(() {}); // Cập nhật UI
-
-      // Gọi API lấy dữ liệu vị trí
-      dynamic data = await fetchLastData(formatImei, startDate, endDate, LIMIT);
-
-      // Nếu lấy dữ liệu thành công, cập nhật UI và xử lý dữ liệu
-      _isLoading = false;
-      setState(() {});
-
-      // Vẽ marker
-      _setUpMarker(isFirstOrReload, response, data);
-    } catch (e) {
-      // Xử lý lỗi khi không tìm thấy dữ liệu
-      _isLoading = false;
-      setState(() {});
-      _support.showSnackbar(
-          context, "Không tìm thấy thông tin vị trí", Colors.redAccent);
-    }
-  }
-
-  // Lay thong tin vi tri ban tin gan nhat
-  Future<dynamic> fetchLastData(
-      String imei, String startDate, String endDate, String limit) async {
-    try {
-      // Lấy danh sách dữ liệu từ API
-      List<PayloadResponse>? payloadResponse =
-          await _apiService.getListPayload(imei, startDate, endDate, limit);
-
-      if (payloadResponse == null || payloadResponse.isEmpty) {
-        throw Exception("Không tìm thấy dữ liệu vị trí");
       }
 
-      // Tìm phần tử đầu tiên có độ dài hợp lệ
-      PayloadResponse firstValidData = payloadResponse.firstWhere(
-          (data) => data.length == 15 || data.length == 10,
-          orElse: () => throw Exception("Không tìm thấy dữ liệu hợp lệ"));
+      try {
+          ShipResponse? shipResponse = await _apiService.getShipInfo(shipNumber);
+          if (shipResponse == null) {
+              if (mounted) {
+                  _support.showSnackbar(context, "Không tìm thấy thông tin tàu", Colors.redAccent);
+              }
+              return;
+          }
 
-      // Giải mã bản tin
-      dynamic gpsLogResponse =
-          await enCodePayload(firstValidData.payload, firstValidData.length);
+          // Kiểm tra dữ liệu đã tồn tại chưa
+          if(isFirstOrReload) {
+              if (await shipInfoDB.isDataExist(shipResponse.imei)) {
+                  debugPrint("$TAG - Dữ liệu đã tồn tại");
+              } else {
+                  // Lưu dữ liệu vào database
+                  int? isInsert = await shipInfoDB.insertData(shipResponse: shipResponse);
+                  debugPrint(isInsert == null ? "$TAG - Không thể thêm dữ liệu" : "$TAG - Thêm dữ liệu thành công");
+              }
+          }
 
-      // Cập nhật UI
-      setState(() {
-        currentLat = _support.convertToDMS(gpsLogResponse.latitude, true);
-        currentLong = _support.convertToDMS(gpsLogResponse.longitude, false);
-        currentTimeDate = _support.formatInputElapsedTime(gpsLogResponse.time);
-        currentElapsedTime = _support.calculateElapsedTime(currentTimeDate);
-      });
+          currentShip = shipResponse.shipNumber;
 
-      return gpsLogResponse;
-    } catch (e) {
-      print("Lỗi khi lấy dữ liệu: $e");
-      throw Exception("Lỗi khi lấy dữ liệu từ server");
-    }
+          // Lưu thông tin chủ tàu và số điện thoại
+          _saveShipInfo(shipResponse);
+
+          // Lấy dữ liệu vị trí của tàu
+          await fetchLastGpsData(isFirstOrReload, shipResponse);
+      } catch (exception) {
+          print("$TAG - $exception");
+          _support.showSnackbar(context, "Đã có lỗi xảy ra trong quá trình lấy dữ liệu!", Colors.redAccent);
+      } finally {
+          if (mounted) {
+              setState(() {
+                  _isLoading = false;
+              });
+          }
+      }
   }
 
-  // Giai ma payload
-  Future<dynamic> enCodePayload(String payload, int length) async {
-    try {
-      if (length == 15 || length == 10) {
-        return await _apiService.enCodePayload(payload, length);
-      } else {
-        throw Exception("Độ dài không hợp lệ: $length");
+  // Xu ly du lieu vi tri ban tin gan nhat
+  Future<LastGpsResponse?> fetchLastGpsData(bool isFirstOrReload, ShipResponse response) async {
+      if (mounted && isFirstOrReload) {
+          setState(() {
+              _isLoading = true;
+          });
       }
-    } catch (e) {
-      print("Lỗi khi giải mã payload: $e");
-      throw Exception("Lỗi xử lý payload");
-    }
+
+      try {
+          LastGpsResponse? lastGpsResponse = await _apiService.getLastGpsData(response.shipNumber);
+
+          if (lastGpsResponse == null) {
+              throw Exception("Không tìm thấy dữ liệu vị trí");
+          }
+
+          if (mounted) {
+              setState(() {
+                  currentLat = _support.convertToDMS(lastGpsResponse.latitude, true);
+                  currentLong = _support.convertToDMS(lastGpsResponse.longitude, false);
+                  currentTimeDate = _support.formatInputElapsedTime(lastGpsResponse.time);
+                  currentElapsedTime = _support.calculateElapsedTime(currentTimeDate);
+                  _isLoading = false;
+              });
+          }
+
+          _setUpMarker(isFirstOrReload, response, lastGpsResponse);
+
+          return lastGpsResponse;
+      } catch (e) {
+          if (mounted) {
+              setState(() {
+                  _isLoading = false;
+              });
+          }
+          _support.showSnackbar(context, "Không thể cập nhật vị trí", Colors.redAccent);
+          print("Lỗi khi lấy dữ liệu: \${e.toString()}");
+          return null;
+      }
   }
 
   // Canh bao
-  Future<void> showWarningAlert(BuildContext context, String shipNumber,
-      LatLng coordinates, dynamic response) async {
+  Future<void> showWarningAlert(BuildContext context, String shipNumber, LatLng coordinates, dynamic response) async {
     // Mất tín hiệu GPS
     int elapsedTime = _support.calculateTimeBetween(currentTimeDate);
     if (elapsedTime >= 240) {
       // Trên 4 giờ
-      NotiService().showNotification(context,
-          title: "Cảnh báo", body: "Tàu $shipNumber mất tín hiệu GPS!");
+      NotiService().showNotification(context, title: "Cảnh báo", body: "Tàu $shipNumber mất tín hiệu GPS!");
 
-      await _support.showWarningDialog(
-          context, "Tàu $shipNumber\nMất tín hiệu GPS!", 'assets/no_gps.png');
+      // await _support.showWarningDialog(context, "Tàu $shipNumber\nMất tín hiệu GPS!", 'assets/no_gps.png');
     }
 
     // Sat ranh gioi (duoi 15 hai ly)
-    double distance =
-        _support.shortestDistance(coordinates, Constants.COORDINATES_LINE);
+    double distance = _support.shortestDistance(coordinates, Constants.COORDINATES_LINE);
     if (distance <= 15) {
-      NotiService().showNotification(context,
-          title: "Cảnh báo", body: "Tàu $shipNumber sát ranh giới!");
+      NotiService().showNotification(context, title: "Cảnh báo", body: "Tàu $shipNumber sát ranh giới!");
 
-      await _support.showWarningDialog(
-          context, "Tàu $shipNumber\nSát ranh giới!", 'assets/warning.png');
-    }
-
-    // Ngoai ranh gioi
-    bool isInside =
-        _support.isPointInPolygon(coordinates, Constants.COORDINATES_LINE);
-    if (!isInside) {
-      NotiService().showNotification(context,
-          title: "Cảnh báo", body: "Tàu $shipNumber ngoài ranh giới!");
-
-      await _support.showWarningDialog(
-          context, "Tàu $shipNumber\nNgoài ranh giới!", 'assets/warning.png');
+      // await _support.showWarningDialog(context, "Tàu $shipNumber\nSát ranh giới!", 'assets/warning.png');
     }
   }
 
