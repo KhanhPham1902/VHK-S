@@ -64,13 +64,6 @@ class _MapScreenState extends State<MapScreen> {
     for (LoginResponse ship in widget.ships) {
       fetchShipInfo(true, ship.shipName);
     }
-
-    // Đặt Timer để cập nhật mỗi 10 phút
-    timer = Timer.periodic(Duration(minutes: 10), (timer) {
-      for (LoginResponse ship in widget.ships) {
-        fetchShipInfo(false, ship.shipName);
-      }
-    });
   }
 
   @override
